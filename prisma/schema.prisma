@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  announcements Announcement[]
+  contents      Content[]
+  comments      Comment[]
+  
+  @@map("users")
+}
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  Int
+  
+  // Relations
+  author User @relation(fields: [authorId], references: [id])
+  
+  @@map("announcements")
+}
+
+model Content {
+  id          Int         @id @default(autoincrement())
+  title       String
+  description String?
+  content     String      @db.Text
+  type        ContentType @default(ARTICLE)
+  category    String?
+  videoUrl    String?
+  fileUrl     String?
+  published   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  authorId    Int
+  
+  // Relations
+  author   User      @relation(fields: [authorId], references: [id])
+  comments Comment[]
+  
+  @@map("contents")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  Int
+  contentId Int?
+  
+  // Relations
+  author  User     @relation(fields: [authorId], references: [id])
+  content Content? @relation(fields: [contentId], references: [id])
+  
+  @@map("comments")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum ContentType {
+  ARTICLE
+  VIDEO
+  DOCUMENT
+}
