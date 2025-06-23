@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      Role     @default(MEMBER)
+  avatar    String?
+  bio       String?
+  joinedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  announcements Announcement[]
+  contents      Content[]
+  comments      Comment[]
+
+  @@map("users")
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author User @relation(fields: [authorId], references: [id])
+
+  @@map("announcements")
+}
+
+model Content {
+  id          String      @id @default(cuid())
+  title       String
+  content     String
+  contentType ContentType
+  category    String?
+  authorId    String
+  imageUrl    String?
+  videoUrl    String?
+  fileUrl     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  author   User      @relation(fields: [authorId], references: [id])
+  comments Comment[]
+
+  @@map("contents")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  authorId  String
+  contentId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author  User     @relation(fields: [authorId], references: [id])
+  content Content? @relation(fields: [contentId], references: [id])
+
+  @@map("comments")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum ContentType {
+  ARTICLE
+  VIDEO
+  DOCUMENT
+}
